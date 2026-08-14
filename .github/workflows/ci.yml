@@ -1,0 +1,23 @@
+name: CI
+
+# main への push では deploy.yml が同じ検証を実行してからデプロイするため、
+# ここでは重ねて走らせない（同じチェックが 2 重に回るのを避ける）。
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build

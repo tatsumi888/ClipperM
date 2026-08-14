@@ -1,0 +1,43 @@
+name: Deploy
+
+# main への push で Cloudflare Pages へ配信する。
+# 検証を同じジョブ内で先に通すので、壊れたものが本番へ出ることはない。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 連続 push したときに古いデプロイが後から上書きしないようにする
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+
+      # デプロイ前のゲート。ここが落ちれば配信されない。
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
+
+      # package.json の deploy スクリプトは使わない。
+      # あちらは対話ログイン前提で、CI では wrangler-action が認証を担うため。
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=clipperm --branch=main

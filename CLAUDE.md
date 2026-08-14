@@ -202,11 +202,42 @@ POST のボディはそのままではアプリ側の JS から読めないの�
 
 ## デプロイ
 
+配信先は Cloudflare Pages（プロジェクト名 `clipperm`）。**main に push すると `.github/workflows/deploy.yml` が検証を通してから自動でデプロイする。** 手動で出すこともできる。
+
 ```powershell
 npx wrangler login                # 初回のみ
 npm run deploy                    # build して Cloudflare Pages の本番へ
 npm run deploy:preview            # preview ブランチへ（本番と別 URL で確認できる）
 ```
+
+### この Pages プロジェクトは "Direct Upload" 型（重要）
+
+`wrangler pages deploy` で作成したプロジェクトは **Direct Upload 型**になり、**後から Cloudflare 側の Git 連携（GitHub を繋いで自動ビルドさせる方式）へ切り替えることはできない。** 逆に Git 連携型のプロジェクトには `wrangler pages deploy` でアップロードできない。
+
+つまり **2 つの方式は排他**で、ClipperM は Direct Upload + GitHub Actions を選んでいる。
+
+- Cloudflare のダッシュボードで「Git を接続」しないこと。**`npm run deploy` と `deploy.yml` の両方が壊れる**
+- 方式を変えたくなったら、プロジェクトを作り直すことになる
+
+### CI に必要な設定
+
+GitHub リポジトリの Secrets（Settings → Secrets and variables → Actions）に 2 つ登録する。
+
+| Secret | 取得元 |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare ダッシュボード → My Profile → API Tokens。権限は Account / Cloudflare Pages / **Edit** |
+| `CLOUDFLARE_ACCOUNT_ID` | `npx wrangler whoami` で確認できる |
+
+**Pages プロジェクトは先にローカルの `npm run deploy` で 1 回作っておくこと。** CI は非対話なので、存在しないプロジェクト名を渡すと作成の確認ができずに失敗する。
+
+### ワークフローの分担
+
+| ファイル | 契機 | 内容 |
+|---|---|---|
+| `ci.yml` | pull request | lint / typecheck / format:check / test / build |
+| `deploy.yml` | main への push | 同じ検証 → Cloudflare Pages へデプロイ |
+
+main への push で `ci.yml` を走らせていないのは、`deploy.yml` が同じ検証を先に実行するため。**両方で走らせると同じチェックが 2 重に回る。**
 
 - **ドメインのルートに置く前提。** manifest の `start_url` / `scope` が `/`、SW が横取りするのも `/share-target` で、`base` を設定していない。`clipperm.pages.dev` のようなルート配信なら問題ないが、**GitHub Pages のプロジェクトページ（`/ClipperM/` のようなサブパス）に置くと壊れる**
 - `public/_headers` が `sw.js` / `manifest.webmanifest` / `index.html` を `no-cache` にしている。**ここを消さないこと。** Service Worker が長期キャッシュされると、デプロイし直しても端末が古い `sw.js` を掴み続ける

@@ -92,6 +92,8 @@ cloudflared tunnel --url http://localhost:4173     # https://xxxx.trycloudflare.
 
 ### デプロイ（Cloudflare Pages）
 
+**main に push すると GitHub Actions が検証を通してから自動でデプロイする。** 手動でも出せる。
+
 ```powershell
 npx wrangler login       # 初回のみ
 npm run deploy           # 本番
@@ -99,6 +101,8 @@ npm run deploy:preview   # preview ブランチ（本番と別 URL）
 ```
 
 **ドメインのルートに置くこと。** manifest の `scope` が `/`、共有ターゲットが `/share-target` なので、サブパス配信（GitHub Pages のプロジェクトページなど）では壊れる。
+
+**この Pages プロジェクトは Direct Upload 型。** Cloudflare のダッシュボードで Git を接続すると `npm run deploy` も GitHub Actions も動かなくなる（2 つの方式は排他）。詳細は [CLAUDE.md](CLAUDE.md) を参照。
 
 ### 構成
 
