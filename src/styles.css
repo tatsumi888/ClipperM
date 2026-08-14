@@ -1,0 +1,316 @@
+/*
+ * スマホの縦持ちを前提にした 1 カラム。
+ * 操作対象が指なので、タップ領域は 44px を下回らないようにしている。
+ */
+
+:root {
+  --bg: #f4f4f5;
+  --panel: #ffffff;
+  --ink: #1a1a1a;
+  --muted: #6b7280;
+  --line: #d4d4d8;
+  --accent: #1a1a1a;
+  --danger: #b91c1c;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'Hiragino Sans',
+    'Noto Sans JP',
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  /* iOS で本体ごとバウンドさせない。キャンバスの pan と喧嘩する。 */
+  overscroll-behavior-y: none;
+}
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 12px calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12px 4px 0;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.app-subtitle {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crop-canvas {
+  width: 100%;
+  display: block;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  /* ブラウザのスクロール・ピンチにポインタイベントを奪わせない。
+     これが無いと 2 本指の操作がページズームに化ける。 */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dropzone {
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--panel);
+}
+
+.dropzone p {
+  margin: 4px 0;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.field-control {
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  width: 100%;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 0.95rem;
+}
+
+.checkbox input {
+  width: 20px;
+  height: 20px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+button.danger {
+  color: var(--danger);
+}
+
+button.link {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 0 6px;
+  border: none;
+  background: none;
+  text-decoration: underline;
+  font-size: 0.85rem;
+}
+
+.page-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  /* 横スクロールはページ一覧の中だけに閉じ込める */
+  padding-bottom: 4px;
+}
+
+.page-item {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-thumb-button {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0;
+  min-height: 0;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+  line-height: 0;
+  background: none;
+}
+
+.page-item.selected .page-thumb-button {
+  border-color: var(--accent);
+}
+
+.page-thumb {
+  display: block;
+  width: 66px;
+  height: auto;
+  background: #fff;
+}
+
+.page-index {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 1px 5px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.page-actions button {
+  min-height: 32px;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+/* 枠への収め方の切り替え。2 択なのでセグメント表示にする。 */
+.segmented {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.segment {
+  border: none;
+  border-radius: 0;
+  background: none;
+  font-size: 0.9rem;
+}
+
+.segment + .segment {
+  border-left: 1px solid var(--line);
+}
+
+.segment.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.note.error {
+  color: var(--danger);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.canvas-hint {
+  padding: 0 4px;
+}
+
+.empty-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.9em;
+}

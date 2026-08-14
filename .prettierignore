@@ -1,0 +1,7 @@
+dist
+dev-dist
+coverage
+node_modules
+.steering
+CLAUDE.md
+README.md

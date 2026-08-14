@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    // noUncheckedIndexedAccess は意図的に無効。core/dither.ts のようなピクセルバッファの
+    // ループでは TypedArray に穴が無いため実バグを捕まえず、`as number` を撒く羽目になる。
+    "exactOptionalPropertyTypes": true,
+
+    // vite-plugin-pwa/client は virtual:pwa-register の型を提供する
+    "types": ["vite/client", "vite-plugin-pwa/client"],
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
+  },
+  "include": ["src", "tests"],
+  "exclude": ["src/sw.ts"]
+}

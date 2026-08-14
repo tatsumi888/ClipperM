@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- maskable は外周 20% が切り落とされうるので、図柄を中央 60% に収めている -->
+  <rect width="512" height="512" fill="#1a1a1a" />
+  <rect x="188" y="154" width="136" height="188" rx="6" fill="#f5f5f5" />
+  <path d="M188 296l42-48 32 30 36-46 26 32v46a6 6 0 0 1-6 6H194a6 6 0 0 1-6-6z" fill="#1a1a1a" opacity="0.75" />
+  <circle cx="227" cy="196" r="17" fill="#1a1a1a" opacity="0.75" />
+</svg>

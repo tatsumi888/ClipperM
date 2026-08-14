@@ -1,0 +1,14 @@
+# 改行コードは作業ツリーでも LF に固定する。
+#
+# Prettier は endOfLine の既定が "lf" なので、Windows の core.autocrlf=true 環境で
+# clone すると作業ツリーが CRLF になり、`npm run format:check` がリポジトリ全体で落ちる。
+# eol=lf を明示しておけば、どの環境で clone しても検証コマンドが同じ結果になる。
+* text=auto eol=lf
+
+# 画像はバイナリとして扱う（差分・改行変換の対象にしない）
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.epub binary
