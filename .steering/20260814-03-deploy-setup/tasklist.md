@@ -44,7 +44,17 @@
 - [x] `npm run build`
 - [x] `npx prettier --check .`
 
-## フェーズ5: ドキュメント
+## フェーズ5: リモートと自動デプロイ（追加）
+
+- [x] リモート `https://github.com/tatsumi888/ClipperM.git` を `origin` として登録
+- [x] リモートが空であることを確認してから push（既存の履歴を壊さないため）
+- [x] `.github/workflows/ci.yml` — pull request のみ
+- [x] `.github/workflows/deploy.yml` — main への push で検証 → Cloudflare Pages
+  - [x] `concurrency` で古いデプロイの後追い上書きを防ぐ
+- [x] `git push -u origin main`（3 コミット、51 ファイル）
+- [x] Direct Upload 型と Git 連携が排他である旨を CLAUDE.md に明記
+
+## フェーズ6: ドキュメント
 
 - [x] `CLAUDE.md` にデプロイ手順・実機確認手順・ルート配信前提を追記
 - [x] **`CLAUDE.md` の「Git リポジトリではない」という記述を訂正**
@@ -99,10 +109,26 @@
   この切り分けを知っていると、確認したいことによって手段（LAN / トンネル / デプロイ）を
   選べる。実際 Kindle 表示の確認はデプロイ無しで済んだ。
 
+**リモート設定で分かったこと**:
+
+- **Cloudflare Pages の Direct Upload 型と Git 連携型は排他。** `wrangler pages deploy` で
+  作ったプロジェクトは後から Cloudflare 側の Git 連携へ切り替えられず、逆に Git 連携型には
+  `wrangler pages deploy` でアップロードできない。ClipperM は
+  「Direct Upload + GitHub Actions」を選んだので、**ダッシュボードで Git を接続すると
+  `npm run deploy` と `deploy.yml` の両方が壊れる**。CLAUDE.md に警告として残した。
+
+- **CI を ci.yml と deploy.yml に分け、トリガを重複させなかった。** 既存プロジェクトの
+  ci.yml は `push: [main]` と `pull_request` の両方を対象にしているが、ClipperM は
+  main への push で deploy.yml が同じ検証を実行するため、ci.yml は pull request 専用にした。
+  両方で走らせると同じチェックが 2 重に回るだけになる。
+
+- **Pages プロジェクトは先にローカルで 1 回作る必要がある。** CI は非対話なので、
+  存在しないプロジェクト名を渡すと作成の確認ができずに失敗する。
+
 ### 次回への改善提案
 
 - ETFTracker / BullGraph / RoutineKeeper にも `.gitattributes` を入れる。
   同じ `core.autocrlf=true` 環境で、同じ Prettier 設定を使っている。
-- リモート（GitHub `tatsumi888/ClipperM`）は未設定のまま。
-  Cloudflare Pages と GitHub を繋いで push で自動デプロイにするかは、
-  手動 `npm run deploy` の運用を試してから決める。
+- **残作業（ユーザー側）**: GitHub Secrets に `CLOUDFLARE_API_TOKEN` と
+  `CLOUDFLARE_ACCOUNT_ID` を登録し、ローカルで `npm run deploy` を 1 回実行して
+  Pages プロジェクト `clipperm` を作成する。これが済むまで deploy.yml は失敗する。
