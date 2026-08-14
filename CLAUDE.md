@@ -196,4 +196,30 @@ POST のボディはそのままではアプリ側の JS から読めないの�
 
 このプロジェクトはまだ `docs/` 配下の永続ドキュメントを持たない。設計判断の正典は本ファイルと、参照元である `../Clipper/CLAUDE.md`・`../EpubCoverBuilder/README.md`。
 
-**ClipperM は Git リポジトリではない**（`.git` なし）。バージョン管理を前提とした操作をしないこと。
+**ClipperM は Git リポジトリだが、リモートは未設定**（`git push` 先が存在しない）。既定ブランチは `main`。コミットメッセージは他プロジェクトに合わせて Conventional Commits + 日本語。
+
+`.gitattributes` で改行を `eol=lf` に固定してある。**これを外さないこと。** Windows の `core.autocrlf=true` 環境で clone すると作業ツリーが CRLF になり、Prettier（`endOfLine` の既定は LF）が全ファイルを差分ありと判定して `npm run format:check` がリポジトリごと落ちる。
+
+## デプロイ
+
+```powershell
+npx wrangler login                # 初回のみ
+npm run deploy                    # build して Cloudflare Pages の本番へ
+npm run deploy:preview            # preview ブランチへ（本番と別 URL で確認できる）
+```
+
+- **ドメインのルートに置く前提。** manifest の `start_url` / `scope` が `/`、SW が横取りするのも `/share-target` で、`base` を設定していない。`clipperm.pages.dev` のようなルート配信なら問題ないが、**GitHub Pages のプロジェクトページ（`/ClipperM/` のようなサブパス）に置くと壊れる**
+- `public/_headers` が `sw.js` / `manifest.webmanifest` / `index.html` を `no-cache` にしている。**ここを消さないこと。** Service Worker が長期キャッシュされると、デプロイし直しても端末が古い `sw.js` を掴み続ける
+- `wrangler pages deploy` に **`--dry-run` は無い**（Workers の `wrangler deploy` にはあるが Pages には無い）。確認したいときは `deploy:preview` を使う
+
+### 実機での確認
+
+`vite.config.ts` の `server` / `preview` に `allowedHosts` を入れてあり、トンネル経由で実機から開ける。
+
+```powershell
+npm run preview                                    # 別ウィンドウで
+cloudflared tunnel --url http://localhost:4173     # https://xxxx.trycloudflare.com
+```
+
+- **`npm run dev` では Service Worker が動かない**（`devOptions` を有効にしていないので SW は本番ビルドにしか出ない）。共有ターゲットを試すときは必ず `preview` 側
+- **HTTP では Service Worker も `navigator.share` も動かない**（secure context 必須）。LAN の `http://<PCのIP>:4173` で試せるのは切り抜きと EPUB 生成とダウンロードまで。共有まわりは必ずトンネルの HTTPS URL で

@@ -77,6 +77,29 @@ npm run typecheck
 
 `npm install` で esbuild の postinstall がスキップされた警告が出るが、無視してよい（npm 11 の既定挙動。バイナリは別パッケージから供給される）。
 
+### 実機で試す
+
+Service Worker と共有機能は HTTPS（secure context）でしか動かない。トンネルを通すのが手軽。
+
+```powershell
+npm run preview                                    # 別ウィンドウで起動しておく
+cloudflared tunnel --url http://localhost:4173     # https://xxxx.trycloudflare.com が出る
+```
+
+`vite.config.ts` に `allowedHosts` を入れてあるので、そのまま実機の Safari / Chrome で開ける。
+
+**`npm run dev` では Service Worker が動かない**（本番ビルドにしか出ない）ので、共有ターゲットの確認は `preview` 側で行う。
+
+### デプロイ（Cloudflare Pages）
+
+```powershell
+npx wrangler login       # 初回のみ
+npm run deploy           # 本番
+npm run deploy:preview   # preview ブランチ（本番と別 URL）
+```
+
+**ドメインのルートに置くこと。** manifest の `scope` が `/`、共有ターゲットが `/share-target` なので、サブパス配信（GitHub Pages のプロジェクトページなど）では壊れる。
+
 ### 構成
 
 ```
