@@ -19,8 +19,9 @@ jobs:
       contents: read
       deployments: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # v4 系は Node 20 実行で非推奨警告が出るため v5 以上を使う（v5 から node24）。
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
@@ -33,10 +34,33 @@ jobs:
       - run: npm test
       - run: npm run build
 
+      # --- ここから下は失敗時の原因切り分け用 -------------------------------
+      # Secrets は値を出さず文字数だけ見る。0 なら未登録か名前の綴り違い。
+      - name: Secrets が登録されているか
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "CLOUDFLARE_API_TOKEN : ${#TOKEN} 文字"
+          echo "CLOUDFLARE_ACCOUNT_ID: ${#ACCOUNT} 文字"
+          test -n "$TOKEN" || echo "::warning::CLOUDFLARE_API_TOKEN が空です"
+          test -n "$ACCOUNT" || echo "::warning::CLOUDFLARE_ACCOUNT_ID が空です"
+
+      # トークンに Cloudflare Pages の権限が入っているかを表示する。
+      # ここが落ちてもデプロイ本体のエラーを見たいので継続する。
+      - name: トークンの権限を確認
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: whoami
+      # ----------------------------------------------------------------------
+
       # package.json の deploy スクリプトは使わない。
       # あちらは対話ログイン前提で、CI では wrangler-action が認証を担うため。
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
