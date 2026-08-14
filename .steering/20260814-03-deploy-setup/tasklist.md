@@ -129,6 +129,25 @@
 
 - ETFTracker / BullGraph / RoutineKeeper にも `.gitattributes` を入れる。
   同じ `core.autocrlf=true` 環境で、同じ Prettier 設定を使っている。
-- **残作業（ユーザー側）**: GitHub Secrets に `CLOUDFLARE_API_TOKEN` と
-  `CLOUDFLARE_ACCOUNT_ID` を登録し、ローカルで `npm run deploy` を 1 回実行して
-  Pages プロジェクト `clipperm` を作成する。これが済むまで deploy.yml は失敗する。
+### 自動デプロイの疎通（2026-08-15 完了）
+
+`https://clipperm.pages.dev/` が公開され、**GitHub Actions 経由のデプロイが成功**した
+（run #5 / commit d3da156 / Cloudflare deployment dcceeaa3）。
+
+**詰まった点と解決**:
+
+- CI のデプロイ段階だけが 3 回連続で失敗した。注釈には
+  `npx failed with exit code 1` としか出ず、原因が特定できなかった。
+- ワークフロー自身に状態を吐かせる診断ステップを入れて解決。
+  **`CLOUDFLARE_ACCOUNT_ID` が空**（Secrets ではなく Variables 側に登録していた）と判明。
+  Secrets は値を出さず**文字数だけ**表示すれば安全に検証できる。この手は残した。
+- 一方 `wrangler whoami` の診断ステップは**外した**。whoami は
+  `User → User Details → Read` を要求するが、トークンは `Cloudflare Pages / Edit` だけに
+  絞ってある（絞れているのが正しい状態）ため必ず失敗する。
+  `continue-on-error` で常設すると、ジョブが緑のまま error 注釈が毎回 2 件残り、
+  「無視してよい赤」に慣れて本物のエラーを見落とすようになる。
+
+- あわせて actions/checkout と setup-node を v5、wrangler-action を v4 へ更新。
+  v4 系は Node 20 実行で非推奨警告が出ていた（v5 / v4 から node24）。
+  wrangler-action v4 は `apiToken` / `accountId` / `command` の入力が v3 と同じで、
+  そのまま差し替えられることを action.yml で確認してから上げた。

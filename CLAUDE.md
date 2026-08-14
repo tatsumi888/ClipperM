@@ -230,6 +230,12 @@ GitHub リポジトリの Secrets（Settings → Secrets and variables → Actio
 
 **Pages プロジェクトは先にローカルの `npm run deploy` で 1 回作っておくこと。** CI は非対話なので、存在しないプロジェクト名を渡すと作成の確認ができずに失敗する。
 
+#### デプロイが失敗したときの読み方
+
+wrangler-action が失敗しても、注釈には **`npx failed with exit code 1` としか出ず原因が分からない**。そのため `deploy.yml` に「Secrets が登録されているか」というステップを置き、**値を出さずに文字数だけ**表示している。0 文字なら未登録か名前の綴り違い。実際、`CLOUDFLARE_ACCOUNT_ID` を Secrets ではなく Variables 側に登録していた事故をこれで特定した。
+
+**`wrangler whoami` を診断に使わないこと。** whoami は `User → User Details → Read` を要求するが、このトークンは `Cloudflare Pages / Edit` だけに絞ってある（絞れているのが正しい）。よって whoami は必ず失敗する。`continue-on-error` を付けて常設すると、ジョブは緑のまま error 注釈が毎回 2 件残り、「無視してよい赤」に慣れて本物のエラーを見落とすようになる。
+
 ### ワークフローの分担
 
 | ファイル | 契機 | 内容 |

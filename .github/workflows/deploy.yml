@@ -34,8 +34,9 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      # --- ここから下は失敗時の原因切り分け用 -------------------------------
-      # Secrets は値を出さず文字数だけ見る。0 なら未登録か名前の綴り違い。
+      # Secrets の登録漏れを早期に検出する。値は出さず文字数だけ見る。
+      # 実際に CLOUDFLARE_ACCOUNT_ID の未登録をこれで特定したので残してある
+      # （wrangler 側のエラーは "npx failed with exit code 1" としか出ず、原因が分からない）。
       - name: Secrets が登録されているか
         env:
           TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -46,16 +47,12 @@ jobs:
           test -n "$TOKEN" || echo "::warning::CLOUDFLARE_API_TOKEN が空です"
           test -n "$ACCOUNT" || echo "::warning::CLOUDFLARE_ACCOUNT_ID が空です"
 
-      # トークンに Cloudflare Pages の権限が入っているかを表示する。
-      # ここが落ちてもデプロイ本体のエラーを見たいので継続する。
-      - name: トークンの権限を確認
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: whoami
-      # ----------------------------------------------------------------------
+      # 補足: ここに `wrangler whoami` の診断ステップを置いてはいけない。
+      # whoami は User → User Details → Read を要求するが、このトークンは
+      # Account / Cloudflare Pages / Edit だけに絞ってある（絞れているのが正しい状態）。
+      # そのため whoami は必ず失敗し、continue-on-error を付けるとジョブは緑のまま
+      # 毎回 error 注釈が 2 件残る。「無視してよい赤」を常設すると、
+      # 本物のエラーに気づけなくなる。
 
       # package.json の deploy スクリプトは使わない。
       # あちらは対話ログイン前提で、CI では wrangler-action が認証を担うため。
