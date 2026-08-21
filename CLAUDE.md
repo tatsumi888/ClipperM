@@ -142,6 +142,20 @@ Clipper は枠の外にも画像全体を 28% の不透明度で描き、位置�
 - 画像の拡張子は **`.jpg` に寄せる**。仕様上は `.jpeg` でも通るが Kindle のカバー認識が不安定
 - 画像は既に JPEG/PNG で圧縮済みなので `{ level: 0 }` で格納する（再圧縮しても縮まず時間だけかかる）
 
+### epubcheck による検証（2026-08-21 実施）
+
+`core/epub.ts` が作る EPUB は **epubcheck 5.3.0 で 0 fatal / 0 error / 0 warning / 0 info**。
+
+再現手順（Java が要る。JDK 21 は RoutineKeeper 用に既に入っている）:
+
+1. 本番コードで EPUB を書き出す一時テストを `tests/` に置き、`buildEpub()` の結果を
+   `writeFileSync` する（Canvas が要らないので node 環境のままで書ける）
+2. `java -jar epubcheck.jar 出力.epub`
+
+**ただし epubcheck が通っても「Kindle に届く」ことの保証にはならない。** Send to Kindle は
+独自の変換器を通すため、仕様適合とは別の理由で失敗しうる（`E999 内部エラー` など）。
+epubcheck は「こちらに非がないこと」を切り分けるための道具であって、配信の保証ではない。
+
 ### 出力形式は白黒かどうかで決まる（`render/renderFrame.ts`）
 
 **グレースケール時は必ず PNG。** JPEG は非可逆なので、せっかく出力解像度でかけたディザリングのドットパターンをブロックノイズで壊す。フルカラー時は写真が主なので JPEG のほうが圧倒的に小さい。
