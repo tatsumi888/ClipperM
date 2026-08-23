@@ -4,3 +4,6 @@ dev-dist
 coverage
 *.local
 .DS_Store
+
+# 実機検証用のEPUB。生成物なのでコミットしない
+sample/
