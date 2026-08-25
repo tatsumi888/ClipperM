@@ -10,7 +10,7 @@
 import { create } from 'zustand';
 import { clampOffset, initialPlacement, placementFor } from '../core/geometry';
 import { DEFAULT_PRESET } from '../core/presets';
-import type { FitMode, Offset, Preset, Size } from '../core/types';
+import type { FitMode, Offset, OutputFormat, Preset, Size } from '../core/types';
 import { decodeImageFiles } from '../render/decode';
 
 export interface PageItem {
@@ -24,10 +24,23 @@ export interface PageItem {
   readonly fitMode: FitMode;
 }
 
+const FORMAT_STORAGE_KEY = 'clipperm.outputFormat';
+
+/** 保存済みの出力形式。未保存や読めない場合は従来どおり EPUB。 */
+function loadOutputFormat(): OutputFormat {
+  try {
+    return localStorage.getItem(FORMAT_STORAGE_KEY) === 'pdf' ? 'pdf' : 'epub';
+  } catch {
+    // プライベートブラウズなどで localStorage が例外を投げることがある
+    return 'epub';
+  }
+}
+
 interface PagesState {
   preset: Preset;
   grayscale: boolean;
   dither: boolean;
+  outputFormat: OutputFormat;
   pages: PageItem[];
   selectedId: string | null;
   /** 取り込みに失敗したファイル名。握りつぶさず画面に出すため保持する。 */
@@ -42,6 +55,7 @@ interface PagesState {
   setPreset: (preset: Preset) => void;
   setGrayscale: (grayscale: boolean) => void;
   setDither: (dither: boolean) => void;
+  setOutputFormat: (format: OutputFormat) => void;
   clearFailures: () => void;
   clearAll: () => void;
 }
@@ -69,6 +83,7 @@ export const usePagesStore = create<PagesState>((set, get) => ({
   preset: DEFAULT_PRESET,
   grayscale: true,
   dither: true,
+  outputFormat: loadOutputFormat(),
   pages: [],
   selectedId: null,
   failures: [],
@@ -159,6 +174,15 @@ export const usePagesStore = create<PagesState>((set, get) => ({
   setPreset: (preset) => set((state) => ({ preset, pages: replaceAll(state.pages, preset) })),
   setGrayscale: (grayscale) => set({ grayscale }),
   setDither: (dither) => set({ dither }),
+
+  setOutputFormat: (format) => {
+    try {
+      localStorage.setItem(FORMAT_STORAGE_KEY, format);
+    } catch {
+      // 保存できなくても動作は続ける
+    }
+    set({ outputFormat: format });
+  },
   clearFailures: () => set({ failures: [] }),
 
   clearAll: () => {

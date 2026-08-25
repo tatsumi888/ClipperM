@@ -24,14 +24,25 @@ export type SendOutcome =
   | 'cancelled';
 
 export const EPUB_MEDIA_TYPE = 'application/epub+zip';
+export const PDF_MEDIA_TYPE = 'application/pdf';
 
 export function canShareFiles(file: File): boolean {
   return typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
 }
 
-export async function sendEpub(bytes: Uint8Array, filename: string): Promise<SendOutcome> {
-  const blob = new Blob([bytes as BlobPart], { type: EPUB_MEDIA_TYPE });
-  const file = new File([blob], filename, { type: EPUB_MEDIA_TYPE });
+/**
+ * 生成済みのファイルを共有シートに渡す。形式には依存しない。
+ *
+ * EPUB / PDF のどちらでも、共有できなければダウンロードに落ちる。
+ * 形式ごとに分岐を増やさないのは、共有可否の判定が canShare に一本化されているため。
+ */
+export async function sendFile(
+  bytes: Uint8Array,
+  filename: string,
+  mediaType: string,
+): Promise<SendOutcome> {
+  const blob = new Blob([bytes as BlobPart], { type: mediaType });
+  const file = new File([blob], filename, { type: mediaType });
 
   // canShare で必ず事前判定する。share() をいきなり呼ぶと未対応環境で例外になる。
   if (!canShareFiles(file)) {
@@ -72,6 +83,16 @@ export function downloadBlob(blob: Blob, filename: string): void {
     // 即座に revoke するとダウンロードが始まらない環境があるため、少し待つ。
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
   }
+}
+
+/** EPUB を送る。sendFile の薄いラッパ。 */
+export function sendEpub(bytes: Uint8Array, filename: string): Promise<SendOutcome> {
+  return sendFile(bytes, filename, EPUB_MEDIA_TYPE);
+}
+
+/** PDF を送る。sendFile の薄いラッパ。 */
+export function sendPdf(bytes: Uint8Array, filename: string): Promise<SendOutcome> {
+  return sendFile(bytes, filename, PDF_MEDIA_TYPE);
 }
 
 export function assertShareSupported(): void {

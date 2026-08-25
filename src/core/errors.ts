@@ -15,6 +15,8 @@ export type ClipperMErrorCode =
   | 'CANVAS_UNAVAILABLE'
   /** EPUB の組み立てに失敗 */
   | 'EPUB_BUILD_FAILED'
+  /** PDF の組み立てに失敗 */
+  | 'PDF_BUILD_FAILED'
   /** Web Share API が使えない。呼び出し側はダウンロードへフォールバックする */
   | 'SHARE_UNSUPPORTED';
 

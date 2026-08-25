@@ -8,6 +8,7 @@
 import { toKindleGray, type GrayOptions } from '../core/dither';
 import { ClipperMError } from '../core/errors';
 import { computeDrawRect } from '../core/geometry';
+import type { PdfPageInput } from '../core/pdf';
 import type { Offset, Size } from '../core/types';
 
 export interface RenderOptions extends GrayOptions {
@@ -129,4 +130,55 @@ export async function renderFrameToBytes(
   canvas.height = 0;
 
   return { bytes, mediaType };
+}
+
+/**
+ * PDF に埋め込む形で 1 ページぶんを焼き出す。
+ *
+ * 格納方式は白黒かどうかで変える（`core/pdf.ts` の設計と対）:
+ *   - グレースケール: 生のグレー値。PDF 側で FlateDecode により**可逆**に格納される。
+ *     ディザリングのドットパターンを 1 ドットも壊さない
+ *   - フルカラー: JPEG のバイト列。PDF はこれをそのまま扱えるので再エンコードしない
+ */
+export async function renderFrameToPdfPage(
+  source: FrameSource,
+  imageSize: Size,
+  frameW: number,
+  frameH: number,
+  zoom: number,
+  offset: Offset,
+  options: RenderOptions = {},
+): Promise<PdfPageInput> {
+  const grayscale = options.grayscale ?? false;
+  const canvas = renderFrame(source, imageSize, frameW, frameH, zoom, offset, options);
+
+  try {
+    if (grayscale) {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) {
+        throw new ClipperMError(
+          'CANVAS_UNAVAILABLE',
+          'Canvas の 2D コンテキストを取得できません。',
+        );
+      }
+      const rgba = ctx.getImageData(0, 0, frameW, frameH).data;
+      // toKindleGray を通した後は R=G=B なので、R だけ取れば 1 チャンネルに落とせる。
+      // RGBA のまま渡すと 4 倍のサイズになるうえ、PDF 側で色空間の指定が要る。
+      const gray = new Uint8Array(frameW * frameH);
+      for (let i = 0; i < gray.length; i += 1) gray[i] = rgba[i * 4];
+      return { data: gray, encoding: 'flate-gray', width: frameW, height: frameH };
+    }
+
+    const blob = await canvasToBlob(canvas, 'image/jpeg');
+    return {
+      data: new Uint8Array(await blob.arrayBuffer()),
+      encoding: 'jpeg',
+      width: frameW,
+      height: frameH,
+    };
+  } finally {
+    // 巨大な Canvas を GC 任せにするとスマホでメモリが張り付く。
+    canvas.width = 0;
+    canvas.height = 0;
+  }
 }

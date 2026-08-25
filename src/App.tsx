@@ -23,6 +23,8 @@ export default function App() {
     setPreset,
     setGrayscale,
     setDither,
+    outputFormat,
+    setOutputFormat,
     clearFailures,
     clearAll,
   } = usePagesStore();
@@ -159,7 +161,14 @@ export default function App() {
         />
       </section>
 
-      <SendPanel pages={pages} preset={preset} grayscale={grayscale} dither={dither} />
+      <SendPanel
+        pages={pages}
+        preset={preset}
+        grayscale={grayscale}
+        dither={dither}
+        outputFormat={outputFormat}
+        onChangeFormat={setOutputFormat}
+      />
     </div>
   );
 }

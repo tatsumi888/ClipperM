@@ -60,3 +60,13 @@ export interface DrawRect {
   readonly dw: number;
   readonly dh: number;
 }
+
+/**
+ * 出力形式。Kindle 側の仕様でトレードオフがあるため、用途で選ぶ。
+ *
+ * - `epub`  カバーになる（スリープ画面に出る）が、Kindle が余白を付けて縮小するため等倍にならない
+ * - `pdf`   等倍で表示される（変換を挟まない）が、Kindle はカバーとして扱わない
+ *
+ * 経緯は CLAUDE.md の「固定レイアウトは使えない」を参照。
+ */
+export type OutputFormat = 'epub' | 'pdf';
