@@ -15,6 +15,22 @@
  * ZIP の先頭にローカルヘッダを手で差し込むという回避策を取っている。
  * **fflate はエントリ単位で level を指定できるので、その苦労は要らない。**
  * ただし「満たせているか」は tests/epub.test.ts がバイト列を直接見て検証している。
+ *
+ * ## 固定レイアウト (rendition:layout) は使えない（2026-08-24 実測）
+ *
+ * `<meta property="rendition:layout">pre-paginated</meta>` を入れると、
+ * **Send to Kindle が E999 内部エラーで配信を拒否する**（ライブラリにファイルすら現れない）。
+ * 同一画像・同一構成で meta の有無だけを変えた 2 つを送って確認した結果なので、これは断定できる。
+ *
+ * 併せて分かったこと:
+ *   - `rendition:orientation` / `rendition:spread` は残しても通る（無害）が、
+ *     layout が無ければ意味を持たないので書かない
+ *   - Amazon 独自の `fixed-layout` / `original-resolution` / `book-type` メタも通らない
+ *   - `<itemref properties="rendition:layout-pre-paginated">` や SVG ラッパーは
+ *     変換自体は通るが **開けない本ができる**（ライブラリに出るが中身が表示されない）。最悪の結果
+ *
+ * 代償として Kindle 側が余白を付けて画像を縮小するため、**等倍表示にはならない**。
+ * 等倍が要るときは EPUB ではなく PDF を使う（`core/pdf.ts`）。
  * epubcheck は CRC32 を検証しないため、ZIP を自前で組む世界では
  * 「epubcheck が通る = 壊れていない」ではない、という教訓も同 README にある。
  */
@@ -154,8 +170,7 @@ function buildContentOpf(
 
   const spineItems = entries.map((entry) => `    <itemref idref="${entry.pageId}"/>`).join('\n');
 
-  // rendition は EPUB3 の予約プレフィックスなので prefix 属性で宣言しない
-  // （宣言すると epubcheck が余計な警告を出す）。
+  // ここに rendition:layout を書いてはいけない。下記の「固定レイアウトは使えない」を参照。
   return `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -163,9 +178,6 @@ function buildContentOpf(
     <dc:title>${escapeXml(meta.title)}</dc:title>
     <dc:language>${escapeXml(meta.language)}</dc:language>
     <meta property="dcterms:modified">${toIsoSeconds(meta.modified)}</meta>
-    <meta property="rendition:layout">pre-paginated</meta>
-    <meta property="rendition:orientation">auto</meta>
-    <meta property="rendition:spread">none</meta>
     <meta name="cover" content="${cover.imageId}"/>
   </metadata>
   <manifest>

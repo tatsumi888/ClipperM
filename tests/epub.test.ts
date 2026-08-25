@@ -90,10 +90,18 @@ describe('EPUB の中身', () => {
     );
   });
 
-  it('固定レイアウトである', () => {
+  it('rendition:layout を書かない（Send to Kindle が弾くため）', () => {
+    // これを入れると Send to Kindle が E999 内部エラーで配信を拒否し、
+    // Kindle のライブラリにファイルすら現れない（2026-08-24 に実測で確認）。
+    // 「固定レイアウトが抜けている」と善意で足し直すのを防ぐための回帰テスト。
+    // 等倍表示が要るときは EPUB ではなく PDF を使う。
     const { bytes } = buildEpub([page(1264, 1680)], { title: 'テスト' });
     const opf = unzipToText(bytes).text('OEBPS/content.opf');
-    expect(opf).toContain('<meta property="rendition:layout">pre-paginated</meta>');
+    expect(opf).not.toContain('rendition:layout');
+    expect(opf).not.toContain('pre-paginated');
+    // Amazon 独自の固定レイアウト指定も同様に通らない
+    expect(opf).not.toContain('fixed-layout');
+    expect(opf).not.toContain('original-resolution');
   });
 
   it('1 ページ目に cover-image が付く（無いとスリープ画面にカバーが出ない）', () => {
