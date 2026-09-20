@@ -7,8 +7,7 @@ CLAUDE.md
 README.md
 AGENTS.md
 
-# harnessから実体化したもの（.claude/ と harness/playbooks/）。
-# 正典（harness側）と書式を揃えたまま比較・再同期したいので、このプロジェクトの
-# Prettier設定で書き換えない。
+# harness（submodule。別リポジトリ）と、そこからdevcontainerのpostCreateで
+# 都度コピーする.claude/。どちらもこのプロジェクトのPrettier設定で書き換えない。
 .claude
-harness/playbooks
+harness

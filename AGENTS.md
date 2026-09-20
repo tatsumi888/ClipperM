@@ -1,6 +1,6 @@
 # AGENTS.md
 
-ClipperM の作業方針。**プロジェクトを問わない一般論はこのリポジトリに実体化した
+ClipperM の作業方針。**プロジェクトを問わない一般論は submodule として取り込んだ
 [harness/playbooks/](harness/playbooks/) にあり、ここには書き写さない**（同じ内容を2か所に
 書くと必ず片方が古くなる）。
 
@@ -33,15 +33,24 @@ npm run lint && npm run typecheck && npm run format:check && npm test && npm run
 
 [CLAUDE.md](CLAUDE.md) の「アーキテクチャ」「注意点」に根拠つきでまとまっている。書き写さない。
 
-## この構成について（harnessの実体化）
+## この構成について（harness submodule）
 
-このプロジェクトは devcontainer 完結型にした（[.devcontainer/](.devcontainer/)）。devcontainer は
-ホスト側のワークスペースルートや `~/.claude` にアクセスできないため、本来そちら経由で読み込まれる
-harness の playbooks と claude 配線（skills / agents / commands）を、**このリポジトリ自身に実体
-ファイルとしてコピー**して持ち込んだ（`/vendor-harness` コマンド）。
+このプロジェクトは devcontainer 完結型にした（[.devcontainer/](.devcontainer/)）。harness は
+`git submodule`（[.gitmodules](.gitmodules)）として取り込んでおり、`harness/` の実体は
+`tatsumi888/harness`（private）の指定コミットのチェックアウトそのものである。
 
-- 2026-09-20、harness の `477e7d8` から実体化した
-- **submodule ではないので、harness 側の更新を自動追従しない。** 最新化したい場合は、harness へ
-  アクセスできる環境（ワークスペースのルートなど）で `/vendor-harness` を再実行する
-- 新規プロジェクトの既定は harness を submodule として取り込むことであり、この構成は
-  「devcontainer 完結型にする」という要件から来た意図的な例外である
+- `.claude/{skills,agents,commands}` は **Claude Code が `.claude/` 配下しか読まないための橋渡し**
+  であり、コミットしない（[.gitignore](.gitignore)参照）。devcontainer作成時に
+  `.devcontainer/post-create.sh` が `harness/claude/` からその場でコピーする。symlink ではなく
+  コピーなのは、Claude Code が symlink 越しに `.claude/skills` を読むかどうかが未検証のため
+- harness は **private リポジトリ**。devcontainer作成時の `git submodule update --init` は、
+  VS Code の Dev Containers拡張が持つgit資格情報の自動転送に依存する。それ以外の方法で
+  コンテナを作る場合は、別途GitHub認証が要る
+- harness の更新を取り込むには、
+  ```bash
+  git submodule update --remote harness
+  cd harness && git log --oneline -5   # 何が入るか見る
+  cd .. && git add harness && git commit
+  ```
+  のあと、コンテナを作り直すか `.devcontainer/post-create.sh` を再実行して `.claude/` を
+  更新する（手順の詳細は harness の `playbooks/idea-to-implementation.md`「harnessの更新と還元」）

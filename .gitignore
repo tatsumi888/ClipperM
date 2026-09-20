@@ -7,3 +7,10 @@ coverage
 
 # 実機検証用のEPUB。生成物なのでコミットしない
 sample/
+
+# harness submodule（.gitmodules参照）からdevcontainerのpostCreateで都度コピーする。
+# コミットするとharnessの更新のたびに古くなるので追跡しない。
+# settings.json等、プロジェクト固有の.claude設定を足す場合はこの3つには含まれない。
+.claude/skills
+.claude/agents
+.claude/commands
