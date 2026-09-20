@@ -40,7 +40,7 @@ npm run lint && npm run typecheck && npm run format:check && npm test && npm run
 harness の playbooks と claude 配線（skills / agents / commands）を、**このリポジトリ自身に実体
 ファイルとしてコピー**して持ち込んだ（`/vendor-harness` コマンド）。
 
-- 2026-09-20、harness の `fbcf8a6` から実体化した
+- 2026-09-20、harness の `477e7d8` から実体化した
 - **submodule ではないので、harness 側の更新を自動追従しない。** 最新化したい場合は、harness へ
   アクセスできる環境（ワークスペースのルートなど）で `/vendor-harness` を再実行する
 - 新規プロジェクトの既定は harness を submodule として取り込むことであり、この構成は
