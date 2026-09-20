@@ -4,11 +4,11 @@ ClipperM の作業方針。**プロジェクトを問わない一般論はこの
 [harness/playbooks/](harness/playbooks/) にあり、ここには書き写さない**（同じ内容を2か所に
 書くと必ず片方が古くなる）。
 
-| 読むもの | 内容 |
-|---|---|
-| [harness/playbooks/working-principles.md](harness/playbooks/working-principles.md) | 進め方の方針・言語・情報の役割分担。**作業前に読む** |
-| [harness/playbooks/spec-first-workflow.md](harness/playbooks/spec-first-workflow.md) | 仕様先行の開発プロセス |
-| [CLAUDE.md](CLAUDE.md) | このプロジェクトの正典（概要・アーキテクチャ・検証コマンド・落とし穴） |
+| 読むもの                                                                             | 内容                                                                   |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| [harness/playbooks/working-principles.md](harness/playbooks/working-principles.md)   | 進め方の方針・言語・情報の役割分担。**作業前に読む**                   |
+| [harness/playbooks/spec-first-workflow.md](harness/playbooks/spec-first-workflow.md) | 仕様先行の開発プロセス                                                 |
+| [CLAUDE.md](CLAUDE.md)                                                               | このプロジェクトの正典（概要・アーキテクチャ・検証コマンド・落とし穴） |
 
 ## このプロジェクトは何か
 
