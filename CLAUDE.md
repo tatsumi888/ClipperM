@@ -232,13 +232,14 @@ EPUB で mimetype をバイト列で確かめたのと同じ位置づけの検�
 
 同じ解像度の機種が複数ある（Paperwhite 第12世代と Oasis はどちらも 1264×1680）ため、選択の同定には `presetKey()` の `"1264x1680|機種名"` 形式を使う。解像度の数値だけでは同定できない。
 
-## Service Worker の更新（`src/pwa/useAppUpdate.ts`）
+## Service Worker の更新（`src/pwaUpdate.ts`）
 
 **編集中のページ・切り抜き位置・並び順はどこにも永続化していない**（`localStorage`に保存するのは
 EPUB/PDFの形式選択だけ）。そのため `vite-plugin-pwa` の既定である `registerType: 'autoUpdate'`
 （新バージョンを検知したら黙ってページをリロードする）を使うと、**作業中に配信が走っただけで
-編集内容が警告なく消える**。ClipperM では `registerType: 'prompt'` にし、ユーザーが「更新する」を
-押すまで反映しない。
+編集内容が警告なく消える**。ClipperM では `registerType: 'prompt'` にし、ユーザーが
+`UpdateBanner`（`src/ui/UpdateBanner.tsx`、状態は `src/store/useUpdateStore.ts`）の
+「更新する」を押すまで反映しない。
 
 - **`sw.ts` の `install` でも無条件に `skipWaiting()` しないこと。** ここで呼ぶと
   `registerType` の設定に関わらず新しい SW が即座に有効化され、`prompt` の意味が無くなる。
@@ -250,8 +251,13 @@ EPUB/PDFの形式選択だけ）。そのため `vite-plugin-pwa` の既定で�
 - **稼働中の検知は `setInterval` の常時ポーリングにしていない。** タブが再びアクティブになった
   とき（`visibilitychange`）にだけ `registration.update()` を呼ぶ。ClipperM は数枚切り抜いて
   送るだけの短時間セッションが基本で、開きっぱなし前提のポーリングは価値の割に電力を食う
-- 手動の「更新を確認」ボタンも同じ `registration.update()` を呼ぶだけなので、実装コストはほぼ
-  無い(`useAppUpdate` の `checkForUpdate`)
+
+### ビルド情報の表示（`src/buildInfo.ts`）
+
+「更新する」を押した結果、実際に新しいビルドへ切り替わったかを確認する手段が画面に無いと、
+検証のたびにネットワークタブやキャッシュを覗くことになる。`vite.config.ts` の `define` で
+git の短縮リビジョン（未コミットの変更があれば `-dirty` を付与）とJSTのビルド日時を埋め込み、
+ヘッダー直下に常時表示している。
 
 ## 注意点
 

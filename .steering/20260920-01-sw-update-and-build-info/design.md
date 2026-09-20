@@ -79,17 +79,21 @@ workbox-window の 'controlling' イベント → window.location.reload()
 - `registerSW()` はモジュールの読み込みタイミングで一度しか呼べない一方、UI（React）側から
   呼び出せる形にする必要があるため、両者を store で繋ぐ
 
-### 6. `src/pwaUpdate.ts`（新規）
+### 6. `src/pwaUpdate.ts`(新規)
 
 **責務**:
-- `registerSW()`（`virtual:pwa-register`）を呼び、`useUpdateStore` と結線する
+- `registerSW()`(`virtual:pwa-register`)を呼び、`useUpdateStore` と結線する
 - `onNeedRefresh` で `updateAvailable = true`
-- `onRegisteredSW` で `ServiceWorkerRegistration` を受け取り、定期チェック
-  （1時間ごと）と `visibilitychange`（visible に戻った時）のチェックを仕込む
+- `onRegisteredSW` で `ServiceWorkerRegistration` を受け取り、`visibilitychange`
+  (visible に戻った時)のチェックを仕込む
 
 **実装の要点**:
-- 定期チェックは `registration.update()` を呼ぶだけ。実際に新しい SW が見つかれば
+- チェックは `registration.update()` を呼ぶだけ。実際に新しい SW が見つかれば
   上記フローで `onNeedRefresh` が呼ばれる
+- **`setInterval` による定期チェックは採用しない。**(2026-09-20、並行して同じ機能を実装した
+  別セッションとの調整により変更。当初案では1時間ごとの定期チェックも入れていたが、
+  ClipperM は数枚切り抜いて送るだけの短時間セッションが基本の使い方であり、開きっぱなし
+  前提のポーリングは価値の割に電力を食うという判断で見送った)
 - チェック間隔は 1 時間。バッテリー消費と検知の速さのバランスを取った値
   （タブ復帰時のチェックがあるので、多くのケースはそちらで先に検知される）
 
