@@ -1,14 +1,18 @@
-interface UpdateBannerProps {
-  onUpdate: () => void;
-}
+import { useUpdateStore } from '../store/useUpdateStore';
 
-export function UpdateBanner({ onUpdate }: UpdateBannerProps) {
+/** 新しい Service Worker が waiting 状態のときだけ表示する。押すまで reload しない。 */
+export function UpdateBanner() {
+  const updateAvailable = useUpdateStore((state) => state.updateAvailable);
+  const applyUpdate = useUpdateStore((state) => state.applyUpdate);
+
+  if (!updateAvailable) return null;
+
   return (
-    <div className="update-banner" role="status">
-      <span>新しいバージョンがあります。更新すると今の作業内容は失われます。</span>
-      <button type="button" className="link" onClick={onUpdate}>
+    <section className="panel update-banner">
+      <p className="note">新しいバージョンがあります。</p>
+      <button type="button" className="primary" onClick={applyUpdate}>
         更新する
       </button>
-    </div>
+    </section>
   );
 }

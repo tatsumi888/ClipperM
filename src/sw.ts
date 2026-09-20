@@ -36,14 +36,20 @@ self.addEventListener('install', (event) => {
       );
       // 1 つ失敗しただけで install ごと落とさない（オフライン対応は付加価値であって必須ではない）。
       await Promise.allSettled(urls.map((url) => cache.add(url)));
-      // ここで skipWaiting しない。registerType: 'prompt' でユーザーが更新を選ぶまでは
-      // 新しい SW を待機させたままにする（src/pwa/useAppUpdate.ts が SKIP_WAITING を送る）。
+      // ここで skipWaiting() を無条件に呼ばない。既存の SW がまだ有効な間は
+      // waiting 状態のままにし、クライアント（UpdateBanner）がユーザーの操作を受けて
+      // 送る SKIP_WAITING メッセージを待つ。初回インストール（既存 SW が無い）では
+      // 待つ相手が存在しないため、これを呼ばなくても spec 上そのまま activate に進む。
     })(),
   );
 });
 
+// registerSW() の戻り値 updateSW() が workbox-window 経由で送る {type:'SKIP_WAITING'} を
+// 受け取ったときだけ、待機中の新しい SW を有効化する。
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') void self.skipWaiting();
+  if (event.data?.type === 'SKIP_WAITING') {
+    void self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {

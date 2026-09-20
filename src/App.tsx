@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { BUILD_REVISION, BUILD_TIME_JST } from './buildInfo';
 import { usePagesStore } from './store/usePagesStore';
 import { consumeSharedFiles, hasSharedPayload } from './share/sharedFiles';
-import { useAppUpdate } from './pwa/useAppUpdate';
 import { CropCanvas } from './ui/CropCanvas';
 import { PageList } from './ui/PageList';
 import { PresetSelect } from './ui/PresetSelect';
@@ -9,8 +9,6 @@ import { SendPanel } from './ui/SendPanel';
 import { UpdateBanner } from './ui/UpdateBanner';
 
 export default function App() {
-  const { needRefresh, update, checkForUpdate } = useAppUpdate();
-
   const {
     preset,
     grayscale,
@@ -46,19 +44,17 @@ export default function App() {
 
   return (
     <div className="app">
-      {needRefresh && <UpdateBanner onUpdate={update} />}
-
       <header className="app-header">
         <h1>ClipperM</h1>
-        <div className="app-header-meta">
-          <span className="app-subtitle">
-            {preset.width}×{preset.height}
-          </span>
-          <button type="button" className="link" onClick={checkForUpdate}>
-            更新を確認
-          </button>
-        </div>
+        <span className="app-subtitle">
+          {preset.width}×{preset.height}
+        </span>
       </header>
+      <p className="hint build-info">
+        rev {BUILD_REVISION} ・ {BUILD_TIME_JST} ビルド
+      </p>
+
+      <UpdateBanner />
 
       <main className="app-main">
         {selected ? (
