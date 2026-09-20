@@ -262,7 +262,7 @@ POST のボディはそのままではアプリ側の JS から読めないの�
 
 このプロジェクトはまだ `docs/` 配下の永続ドキュメントを持たない。設計判断の正典は本ファイルと、参照元である `../Clipper/CLAUDE.md`・`../EpubCoverBuilder/README.md`。
 
-**ClipperM は Git リポジトリだが、リモートは未設定**（`git push` 先が存在しない）。既定ブランチは `main`。コミットメッセージは他プロジェクトに合わせて Conventional Commits + 日本語。
+リモートは GitHub の `tatsumi888/ClipperM`（`origin`）。既定ブランチは `main`。コミットメッセージは他プロジェクトに合わせて Conventional Commits + 日本語。
 
 `.gitattributes` で改行を `eol=lf` に固定してある。**これを外さないこと。** Windows の `core.autocrlf=true` 環境で clone すると作業ツリーが CRLF になり、Prettier（`endOfLine` の既定は LF）が全ファイルを差分ありと判定して `npm run format:check` がリポジトリごと落ちる。
 
