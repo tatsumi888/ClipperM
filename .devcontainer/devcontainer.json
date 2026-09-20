@@ -1,0 +1,28 @@
+{
+  "name": "ClipperM",
+  "build": {
+    "context": ".",
+    "dockerfile": "Dockerfile"
+  },
+  "postCreateCommand": "sudo chown node:node node_modules && npm ci",
+  "forwardPorts": [5173, 4173],
+  "portsAttributes": {
+    "5173": { "label": "Vite dev server" },
+    "4173": { "label": "Vite preview" }
+  },
+  // Windows ホストで既に入っている node_modules（win32 向けバイナリ、CLAUDE.md「コマンド」参照）を
+  // コンテナ内の npm ci で上書きしないよう、コンテナ専用のボリュームに分離する。
+  "mounts": [
+    "source=clipperm-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "vitest.explorer"],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "remoteUser": "node"
+}

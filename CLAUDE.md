@@ -30,6 +30,22 @@ npx vitest run -t "mimetype は無圧縮"     # 名前で絞る
 
 `npm install` 時に **esbuild の postinstall がスキップされたという警告が出るが、無視してよい**（npm 11 の既定挙動）。バイナリは `@esbuild/win32-x64` という別パッケージから供給されるため実際には動く。`npm approve-scripts` を実行する必要はない。
 
+## 開発コンテナ（`.devcontainer/`）
+
+VS Code の Dev Containers（または `devcontainers/cli`）で開けば、Windows ホストに Node を
+入れなくても `npm run dev` / `build` / `test` / `lint` / `typecheck` / `format:check` が
+そのまま通る。ベースイメージは CI（`.github/workflows/ci.yml`）と同じ Node 22 系
+（`mcr.microsoft.com/devcontainers/javascript-node:22-bookworm`）。
+
+- **`node_modules` はコンテナ専用の named volume に分離してある。** ホスト（Windows）側の
+  `node_modules` には `@esbuild/win32-x64` のような win32 バイナリが入っており、
+  コンテナ内で素直に `npm ci` するとそれを linux バイナリで上書きしてホスト側の実行を壊す。
+  volume で経路を分けることで、コンテナと Windows ホストを行き来しても壊れない
+- **`cloudflared` を同梱している。**「実機での確認」で使うトンネルが、コンテナ内の
+  `cloudflared tunnel --url http://localhost:4173` だけで完結する（ホスト側に別途インストール
+  する必要がない）
+- ポート `5173`（dev）・`4173`（preview）は自動フォワードされる
+
 ## アーキテクチャ
 
 ### 層の境界: `src/core/` に DOM を持ち込まない
