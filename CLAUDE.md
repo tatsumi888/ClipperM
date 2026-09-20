@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**このプロジェクトの入口は [AGENTS.md](AGENTS.md) である。作業を始める前に必ず読むこと。**
+プロジェクトを問わない一般論（進め方の方針、仕様先行のプロセス）は AGENTS.md が指す
+`harness/playbooks/` にあり、本ファイルには書き写さない。
+
 ## 概要
 
 ClipperM は**スマホ内で完結する Clipper**。撮影した写真やスクリーンショットを Kindle の実解像度ちょうどに切り抜き、複数枚をまとめて固定レイアウト EPUB にして、Kindle へ送り込む PWA。
