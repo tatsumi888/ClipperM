@@ -26,7 +26,9 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      registerType: 'autoUpdate',
+      // 'autoUpdate' だと編集中の状態（永続化していない）を保ったまま黙ってリロードされる。
+      // ユーザーが更新を選ぶまで待つ（src/pwa/useAppUpdate.ts）。
+      registerType: 'prompt',
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,webmanifest}'],
       },

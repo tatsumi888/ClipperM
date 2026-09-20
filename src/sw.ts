@@ -36,9 +36,14 @@ self.addEventListener('install', (event) => {
       );
       // 1 つ失敗しただけで install ごと落とさない（オフライン対応は付加価値であって必須ではない）。
       await Promise.allSettled(urls.map((url) => cache.add(url)));
-      await self.skipWaiting();
+      // ここで skipWaiting しない。registerType: 'prompt' でユーザーが更新を選ぶまでは
+      // 新しい SW を待機させたままにする（src/pwa/useAppUpdate.ts が SKIP_WAITING を送る）。
     })(),
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') void self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

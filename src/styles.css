@@ -62,10 +62,33 @@ body {
   letter-spacing: 0.02em;
 }
 
+.app-header-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .app-subtitle {
   color: var(--muted);
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
+}
+
+.update-banner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+
+.update-banner .link {
+  color: #fff;
+  flex: 0 0 auto;
 }
 
 .app-main {

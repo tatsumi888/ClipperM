@@ -232,6 +232,27 @@ EPUB で mimetype をバイト列で確かめたのと同じ位置づけの検�
 
 同じ解像度の機種が複数ある（Paperwhite 第12世代と Oasis はどちらも 1264×1680）ため、選択の同定には `presetKey()` の `"1264x1680|機種名"` 形式を使う。解像度の数値だけでは同定できない。
 
+## Service Worker の更新（`src/pwa/useAppUpdate.ts`）
+
+**編集中のページ・切り抜き位置・並び順はどこにも永続化していない**（`localStorage`に保存するのは
+EPUB/PDFの形式選択だけ）。そのため `vite-plugin-pwa` の既定である `registerType: 'autoUpdate'`
+（新バージョンを検知したら黙ってページをリロードする）を使うと、**作業中に配信が走っただけで
+編集内容が警告なく消える**。ClipperM では `registerType: 'prompt'` にし、ユーザーが「更新する」を
+押すまで反映しない。
+
+- **`sw.ts` の `install` でも無条件に `skipWaiting()` しないこと。** ここで呼ぶと
+  `registerType` の設定に関わらず新しい SW が即座に有効化され、`prompt` の意味が無くなる。
+  ページ側から `{ type: 'SKIP_WAITING' }` メッセージが届いたときだけ `skipWaiting()` する
+  （`workbox-window` の `messageSkipWaiting()` が送る形式そのままで、書式を変えると届かない）
+- **「更新待ち」の状態はブラウザの `registration.waiting` がそのまま覚えている。** アプリを
+  更新せずに閉じて開き直しても、次のロードで同じ更新が再検知される。localStorage 等で
+  独自にフラグを持つ必要はない
+- **稼働中の検知は `setInterval` の常時ポーリングにしていない。** タブが再びアクティブになった
+  とき（`visibilitychange`）にだけ `registration.update()` を呼ぶ。ClipperM は数枚切り抜いて
+  送るだけの短時間セッションが基本で、開きっぱなし前提のポーリングは価値の割に電力を食う
+- 手動の「更新を確認」ボタンも同じ `registration.update()` を呼ぶだけなので、実装コストはほぼ
+  無い(`useAppUpdate` の `checkForUpdate`)
+
 ## 注意点
 
 - **`navigator.share()` はユーザー操作から来た呼び出しでないと拒否される。** EPUB の生成は数秒かかることがあり、`await` を挟むと iOS でジェスチャが切れる。そのため UI は「EPUB を作る」と「送る」を**別のボタンに分けてある**。ここを 1 ボタンにまとめないこと
